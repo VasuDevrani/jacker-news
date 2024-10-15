@@ -1,8 +1,11 @@
 import { relations } from "drizzle-orm";
 import { integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+
 import { userTable } from "./auth";
 import { postsTable } from "./posts";
 import { commentUpvotesTable } from "./upvotes";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
 
 export const commentsTable = pgTable("comments", {
   id: serial("id").primaryKey(),
@@ -19,23 +22,26 @@ export const commentsTable = pgTable("comments", {
 });
 
 export const commentRelations = relations(commentsTable, ({ one, many }) => ({
-    author: one(userTable, {
-      fields: [commentsTable.userId],
-      references: [userTable.id],
-      relationName: "author",
-    }),
-    parentComment: one(commentsTable, {
-      fields: [commentsTable.parentCommentId],
-      references: [commentsTable.id],
-      relationName: "childComments",
-    }),
-    childComments: many(commentsTable, {
-      relationName: "childComments",
-    }),
-    post: one(postsTable, {
-      fields: [commentsTable.postId],
-      references: [postsTable.id],
-    }),
-    commentUpvotes: many(commentUpvotesTable, { relationName: "commentUpvotes" }),
-  }));
-  
+  author: one(userTable, {
+    fields: [commentsTable.userId],
+    references: [userTable.id],
+    relationName: "author",
+  }),
+  parentComment: one(commentsTable, {
+    fields: [commentsTable.parentCommentId],
+    references: [commentsTable.id],
+    relationName: "childComments",
+  }),
+  childComments: many(commentsTable, {
+    relationName: "childComments",
+  }),
+  post: one(postsTable, {
+    fields: [commentsTable.postId],
+    references: [postsTable.id],
+  }),
+  commentUpvotes: many(commentUpvotesTable, { relationName: "commentUpvotes" }),
+}));
+
+export const insertCommentsSchema = createInsertSchema(commentsTable, {
+  content: z.string().min(3, { message: "Comment must be at least 3 chars" }),
+});
