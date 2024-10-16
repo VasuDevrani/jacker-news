@@ -17,6 +17,7 @@ export function ErrorComponent({ error }: { error: Error }) {
   const router = useRouter();
   const isDev = process.env.NODE_ENV !== "production";
 
+  //reset tanstack queries
   const queryClientErrorBoundary = useQueryErrorResetBoundary();
 
   useEffect(() => {
